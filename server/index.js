@@ -58,7 +58,7 @@ app.post("/values", async (req, res) => {
     return res.status(422).send("Index too high!!");
   }
 
-  redisClient.hset("values", index, "Nothing yet!");
+  redisClient.hset("fibvalues", index, "Nothing yet!");
   
   redisPublisher.publish('insert', index);
 
