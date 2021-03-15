@@ -22,7 +22,7 @@ const pgClient = new Pool({
 pgClient.on("connect", () => {
   console.log("Creating tables...");
   pgClient
-    .query('CREATE TABLE IF NOT EXISTS fibvalues (number INT)')
+    .query(`CREATE TABLE IF NOT EXISTS ${pgDatabase}.fibtable (number INT)`)
     .catch((err) => console.log(err));
 }); 
 
@@ -38,14 +38,14 @@ const redisPublisher = redisClient.duplicate();
 // all routes
 app.get("/values/all", async (req, res) => {
   
-  const values = await pgClient.query("Select * from fibvalues");
+  const values = await pgClient.query(`Select * from ${pgDatabase}.fibtable`);
 
   res.send(values.rows);
 });
 
 app.get("/values/current", (req, res) => {
 
-  redisClient.hgetall("fibvalues", (err, values) => {
+  redisClient.hgetall("fibtable", (err, values) => {
     res.send(values);
   });
 });
@@ -58,11 +58,11 @@ app.post("/values", async (req, res) => {
     return res.status(422).send("Index too high!!");
   }
 
-  redisClient.hset("fibvalues", index, "Nothing yet!");
+  redisClient.hset("fibtable", index, "Nothing yet!");
   
   redisPublisher.publish('insert', index);
 
-  pgClient.query('INSERT INTO fibvalues(number) VALUES($1)', [index]);
+  pgClient.query(`INSERT INTO ${pgDatabase}.fibtable(number) VALUES($1)`, [index]);
 
   res.send({working: true});
 });
